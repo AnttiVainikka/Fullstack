@@ -11,7 +11,13 @@ const Content = (props) => {
   for (let i=0; i<parts.length; i++) {
     contents[i] = <p>{parts[i]} {exercises[i]}</p>
   }
-  return contents
+  return (
+    <div>
+      {contents[0]}
+      {contents[1]}
+      {contents[2]}
+    </div>
+  )
 }
 
 const Total = (props) => {
