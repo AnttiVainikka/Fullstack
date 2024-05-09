@@ -43,3 +43,18 @@ sequenceDiagram
 
     browser->>browser: The callback function for rendering the notes is executed
 ```
+0.6: Uusi muistiinpano
+```mermaid
+sequenceDiagram
+    participant browser
+    participant server
+    
+    browser->>server: POST https://studies.cs.helsinki.fi/exampleapp/new_note_spa
+    activate server
+Note right of browser: The browser sends the information regarding the new note to be created
+    server-->>server:  The new note is created inside the server
+    server-->>browser: {content: "Indeed", date: "2024-05-09T09:46:24.805Z"}
+Note left of server: The data of the created note is sent back in JSON alongside {message: "note created"}
+    deactivate server
+Note right of browser: The notes page is fetched and rendered as in the 0.5 chart now with the new note
+```
