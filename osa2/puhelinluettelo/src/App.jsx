@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
 
 const RenderPersons = (props) => {
   let persons = props.persons
   if (props.filter) {
     persons = persons.filter((person) => person.name.toLowerCase().includes(props.filter))
   }
-  return persons.map(person => <p key={person.name}>{person.name} {person.number}</p>)
+  return persons.map(person => <p key={person.id}>{person.name} {person.number} 
+  <button onClick={props.deletePerson(person.id)}>delete</button></p>
+  )
 }
 
 const FilterPersons = (props) => {
@@ -59,22 +61,48 @@ const App = () => {
   const [activeFilter, setActiveFilter] = useState('')
 
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
-      })
+    personService
+      .getAll()
+      .then(initialPersons => {setPersons(initialPersons)})
   }, [])
 
   const addPerson = (event) => {
     event.preventDefault()
     if (persons.map(person => person.name).includes(newName)) {
-      alert(`${newName} is already added to phonebook`)
-    } else {
-    setPersons(persons.concat({name : newName, number : newNumber}))
+      if (confirm('Name already exists. Will you update number?')) {
+        const existingPerson = persons.find(person => person.name === newName)
+        const changedNumber = { ...existingPerson, number: newNumber}
+        personService
+          .update(existingPerson.id,changedNumber)
+          .then(updatedPerson => {
+            setPersons(persons.map(person => 
+              person.id !== existingPerson.id ? person : updatedPerson))
+          })
+      }
+    } 
+    else {
+      personService
+        .create({name : newName, number : newNumber})
+        .then(newPerson => {
+          setPersons(persons.concat(newPerson))
+        })
     }
     setNewName('')
     setNewNumber('')
+  }
+
+  const deletePerson = (id) => {
+    const askPermission = () => {
+      if (confirm("Are you sure you wish to delete this person?")) {
+        personService
+          .del(id)
+          .then(response => {
+            console.log(response)
+          })
+        setPersons(persons.filter(person => person.id !== id))
+      }
+    }
+    return askPermission
   }
 
   const handleNameChange = (event) => {
@@ -102,7 +130,7 @@ const App = () => {
       
       <h3>Numbers</h3>
 
-      <RenderPersons persons={persons} filter={activeFilter}/>
+      <RenderPersons persons={persons} filter={activeFilter} deletePerson={deletePerson}/>
     </div>
   )
 
