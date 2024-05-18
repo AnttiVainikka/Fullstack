@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+  return (
+    <div className="notification">
+      {message}
+    </div>
+  )
+}
+
 const RenderPersons = (props) => {
   let persons = props.persons
   if (props.filter) {
@@ -59,6 +70,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
   const [activeFilter, setActiveFilter] = useState('')
+  const [notification, setNotification] = useState('')
 
   useEffect(() => {
     personService
@@ -78,6 +90,10 @@ const App = () => {
             setPersons(persons.map(person => 
               person.id !== existingPerson.id ? person : updatedPerson))
           })
+        setNotification(`Number of ${newName} has been updated`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 4000)
       }
     } 
     else {
@@ -86,6 +102,10 @@ const App = () => {
         .then(newPerson => {
           setPersons(persons.concat(newPerson))
         })
+        setNotification(`${newName} has been added`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 4000)
     }
     setNewName('')
     setNewNumber('')
@@ -99,7 +119,12 @@ const App = () => {
           .then(response => {
             console.log(response)
           })
+        const deletedName = persons.find(person => person.id === id).name
         setPersons(persons.filter(person => person.id !== id))
+        setNotification(`${deletedName} has been deleted`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 4000)
       }
     }
     return askPermission
@@ -120,6 +145,8 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+
+      <Notification message={notification}/>
 
       <FilterPersons setActiveFilter={setActiveFilter}
       newFilter={newFilter} handleFilterChange={handleFilterChange}/>
