@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react'
 import personService from './services/persons'
 
-const Notification = ({ message }) => {
+const Notification = ({ message, error }) => {
   if (message === null) {
     return null
-  }
+  } 
   return (
-    <div className="notification">
+    <div className={error ? "error" : "notification" }>
       {message}
     </div>
   )
@@ -70,7 +70,8 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('')
   const [newFilter, setNewFilter] = useState('')
   const [activeFilter, setActiveFilter] = useState('')
-  const [notification, setNotification] = useState('')
+  const [notification, setNotification] = useState(null)
+  const [error, setError] = useState(false)
 
   useEffect(() => {
     personService
@@ -89,11 +90,22 @@ const App = () => {
           .then(updatedPerson => {
             setPersons(persons.map(person => 
               person.id !== existingPerson.id ? person : updatedPerson))
+            setNotification(`Number of ${newName} has been updated`)
+              setTimeout(() => {
+                setNotification(null)
+              }, 4000)
           })
-        setNotification(`Number of ${newName} has been updated`)
-        setTimeout(() => {
-          setNotification(null)
-        }, 4000)
+          .catch(error => {
+            console.log(error)
+            setPersons(persons.filter(person => person.id !== existingPerson.id))
+            setNotification(`Information on ${existingPerson.name} has been deleted`)
+            setError(true)
+            setTimeout(() => {
+              setNotification(null)
+              setError(false)
+            }, 4000)
+          })
+        
       }
     } 
     else {
@@ -117,14 +129,21 @@ const App = () => {
         personService
           .del(id)
           .then(response => {
-            console.log(response)
+            setNotification(`${response.name} has been deleted`)
+            setTimeout(() => {
+              setNotification(null)
+            }, 4000)
           })
-        const deletedName = persons.find(person => person.id === id).name
+          .catch(error => {
+            console.log(error)
+            setNotification('Person has already been deleted')
+            setError(true)
+            setTimeout(() => {
+              setNotification(null)
+              setError(false)
+            }, 4000)
+          })
         setPersons(persons.filter(person => person.id !== id))
-        setNotification(`${deletedName} has been deleted`)
-        setTimeout(() => {
-          setNotification(null)
-        }, 4000)
       }
     }
     return askPermission
@@ -146,7 +165,7 @@ const App = () => {
     <div>
       <h2>Phonebook</h2>
 
-      <Notification message={notification}/>
+      <Notification message={notification} error={error}/>
 
       <FilterPersons setActiveFilter={setActiveFilter}
       newFilter={newFilter} handleFilterChange={handleFilterChange}/>
