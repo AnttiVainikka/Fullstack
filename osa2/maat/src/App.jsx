@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import countryService from './services/countries'
 
-const FoundCountry = ({country, setCountry}) => {
+const FoundCountry = ({country2, setCountry}) => {
   countryService
-    .getCountry(country)
+    .getCountry(country2)
     .then(countryData => {
       setCountry (
         <div>
@@ -24,18 +24,23 @@ const FoundCountry = ({country, setCountry}) => {
 
 const CheckSearch = (props) => {
   props.setSearch(props.changedSearch)
+  const handleClick = props.handleClick
   const setCountry = props.setCountry
   const filtered = props.countries.filter(country => 
     country.common.toLowerCase().includes(props.changedSearch.toLowerCase()))
   if (filtered.length === 1) {
-    const country = filtered[0].common
-    FoundCountry({country, setCountry})
+    const country2 = filtered[0].common.toLowerCase()
+    FoundCountry({country2, setCountry})
     return
   }
   if (filtered.length < 11) {
     setCountry(
       <div>
-        {filtered.map(country => <p key={country.common}>{country.common}</p>)}
+        {filtered.map(country => 
+          <p key={country.common}>
+            {country.common}<button onClick={handleClick(country.common)}>show</button>
+          </p>
+        )}
       </div>
     )
     return
@@ -60,13 +65,26 @@ const App = () => {
 
   const handleSearch = (event) => {
     const changedSearch = event.target.value
-    CheckSearch({setCountry,countries,changedSearch,setSearch})
+    CheckSearch({setCountry,countries,changedSearch,setSearch,handleClick})
+  }
+
+  const handleClick = (countryName) => {
+    const executeHandling = () => {
+      const country2 = countryName.toLowerCase()
+      FoundCountry({country2, setCountry})
+      setSearch(country2)
+    }
+    return executeHandling
+  }
+  
+  const handleSubmit = (event) => {
+    event.preventDefault()
   }
 
   if (countries) {
     return (
       <div>
-        <form>
+        <form onSubmit={handleSubmit}>
         find countries<input value={search} onChange={handleSearch}/>
         </form>
         {country}
